@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # GPS Tracker Server
+  tracker-server:
+    build: .
+    container_name: gps-tracker-server
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - PUBLIC_ORIGIN=http://localhost:3000
+      - SQLITE_FILE=/app/data/tracker.sqlite
+      - DEVICE_TOKEN=${DEVICE_TOKEN:-default_token}
+      - HISTORY_POINTS=500
+      - ONLINE_WINDOW_S=60
+      - MQTT_ENABLED=true
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME:-tracker_user}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-abhayd95}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    networks:
+      - tracker-network
+
+  # Eclipse Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: gps-tracker-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+    networks:
+      - tracker-network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: gps-tracker-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - tracker-server
+    restart: unless-stopped
+    networks:
+      - tracker-network
+    profiles:
+      - production
+
+networks:
+  tracker-network:
+    driver: bridge
+
+volumes:
+  tracker-data:
+  mosquitto-data:
+  mosquitto-logs:
