@@ -417,7 +417,7 @@ const apiLimiter = rateLimit({
 
 const trackLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 60, // limit each IP to 60 requests per minute
+    max: 200, // limit each IP to 200 requests per minute (allows for more devices)
     message: 'Too many tracking requests from this IP, please try again later.'
 });
 
@@ -549,13 +549,13 @@ app.get('/api/history/:deviceId', (req, res) => {
 });
 
 // Catch-all route for SPA (exclude API and WebSocket paths)
-app.get('*', (req, res) => {
+app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Not found' });
     }
     // Don't interfere with WebSocket paths - let the WebSocket server handle them
     if (req.path.startsWith('/ws')) {
-        return; // Let the WebSocket server handle the request
+        return next(); // Let the WebSocket server handle the request
     }
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });

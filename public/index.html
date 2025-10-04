@@ -3,194 +3,244 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Tracker - Real-time Tracking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Real-time GPS Tracking System with live map updates and device monitoring">
+    <meta name="keywords" content="GPS, tracking, real-time, map, devices, monitoring">
+    <meta name="author" content="GPS Tracker System">
 
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#FFD700">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="GPS Tracker">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="GPS Tracker System">
+    <meta property="og:description" content="Real-time GPS tracking with live map updates">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://localhost:3000">
 
-    <!-- Manifest -->
-    <link rel="manifest" href="/manifest.webmanifest">
+    <title>GPS Tracker - Real-time Monitoring</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
 
-    <!-- Custom Styles with Cache Busting -->
-    <link rel="stylesheet" href="/styles.css?v=20251004">
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha512-mR+4N4Y8uCCHWDjJQyUqOL1k0l8QPDTGNnC1k0i4rF6rO7BdGYOgI3A8F5kGD12QCLqX/2WtcRGpFpboA5MQ==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha512-6YCLp7v/T8USL1E/l8bJ5Y3+0L8B1ig6Kv1+2P2e5F7Q5C4K7s7X8vkZ5zJ9KIWQ7XaRhZ2lbN+1dHWb0zHQ==" crossorigin="anonymous">
 
-    <!-- Critical CSS Fallback -->
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/styles.css?v=20250104">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+
+    <!-- Critical inline CSS for immediate rendering -->
     <style>
+        /* Critical CSS for immediate rendering */
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #1a1a1a;
-            color: #ffffff;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-areas: "header header" "sidebar main";
+            grid-template-rows: 60px 1fr;
+            grid-template-columns: 320px 1fr;
             height: 100vh;
         }
         
+        @media (max-width: 768px) {
+            .container {
+                grid-template-areas: "header" "main";
+                grid-template-rows: 60px 1fr;
+                grid-template-columns: 1fr;
+            }
+        }
+        
         .header {
-            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-            height: 60px;
+            grid-area: header;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            padding: 0 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .header-title {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .main {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            height: calc(100vh - 60px);
-        }
-        
-        .map-container {
-            background: #1a1a1a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .sidebar {
-            background: #2d2d2d;
-            padding: 1rem;
+            grid-area: sidebar;
+            background: #ffffff;
+            border-right: 1px solid #e0e0e0;
             overflow-y: auto;
         }
         
-        .card {
-            background: #1a1a1a;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #444444;
+        .main {
+            grid-area: main;
+            position: relative;
+            background: #f5f5f5;
         }
         
-        .card-title {
-            color: #d4af37;
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ff9800;
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-        
-        .status-dot.connected {
-            background: #4caf50;
-        }
-        
-        .status-dot.disconnected {
-            background: #f44336;
-        }
-        
-        .ws-status {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-        }
-        
-        .status-text {
-            color: white;
-            font-size: 0.875rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-            color: #888888;
-            text-transform: uppercase;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: #1a1a1a;
-            border: 1px solid #444444;
-            border-radius: 8px;
-            color: #ffffff;
-            margin-bottom: 1rem;
-        }
-        
-        .device-item {
-            padding: 0.75rem;
-            background: #2d2d2d;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            border: 1px solid transparent;
-            cursor: pointer;
-        }
-        
-        .device-item:hover {
-            background: #1a1a1a;
-            border-color: #d4af37;
-        }
-        
-        .device-id {
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 0.875rem;
-        }
-        
-        .device-status.online {
-            color: #4caf50;
-        }
-        
-        .device-status.offline {
-            color: #f44336;
-        }
-        
-        .device-coords {
-            font-size: 0.75rem;
-            color: #cccccc;
-            font-family: monospace;
-        }
-        
-        .no-devices {
-            text-align: center;
-            color: #888888;
-            padding: 2rem;
-            font-style: italic;
-        }
-        
-        #map {
+        .map {
             width: 100%;
             height: 100%;
         }
+        /* Loading state */
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        /* Hide sidebar on mobile by default */
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                z-index: 998;
+                transition: transform 0.3s ease;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
     </style>
+</head>
 
-    <!-- Force disable service worker cache -->
+<body>
+    <!-- Main Container -->
+    <div class="container" id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu" title="Toggle Sidebar">
+                    ☰ Menu
+                </button>
+                <h1 class="header-title">
+                    <a href="/" class="header-title">GPS Tracker</a>
+                </h1>
+            </div>
+
+            <nav class="header-nav">
+                <a href="#dashboard">Dashboard</a>
+                <a href="#devices">Devices</a>
+                <a href="#settings">Settings</a>
+                <a href="#login" class="btn btn-sm">Login</a>
+            </nav>
+
+            <div class="header-right">
+                <div class="connection-status" id="connectionStatus">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
+                <button id="testConnection" class="btn btn-sm btn-success" style="margin-left: 0.5rem;">
+                    Test Connection
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 class="sidebar-title">System Overview</h2>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="onlineDevices">0</div>
+                        <div class="stat-label">Online Devices</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalPositions">0</div>
+                        <div class="stat-label">Total Positions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="wsClients">0</div>
+                        <div class="stat-label">WebSocket Clients</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uptime">0h</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                </div>
+
+                <!-- Device List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            📱 Active Devices
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <input type="text" class="search-input" id="deviceSearch" placeholder="Search devices..." aria-label="Search devices">
+
+                        <div class="device-list" id="deviceList">
+                            <div class="loading">Loading devices...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map" class="map"></div>
+
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <button class="control-button" id="centerAllBtn" title="Center map on all devices">
+                        🎯 Center All
+                    </button>
+                    <button class="control-button" id="trailsBtn" title="Toggle device trails">
+                        📍 Trails
+                    </button>
+                    <button class="control-button" id="clustersBtn" title="Toggle marker clustering">
+                        🔗 Clusters
+                    </button>
+                    <button class="control-button" id="fullscreenBtn" title="Toggle fullscreen mode">
+                        ⛶ Fullscreen
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+
+    <!-- Leaflet MarkerCluster JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha512-OFv4dICrZVjVq0uIutn3Gkgp12pfAuq+/s9rfL70fH54Bzn9Bni3/3J6Vz+sxi6ulRInZiqkRwrdSEiT41fMHg==" crossorigin="anonymous"></script>
+
+    <!-- Main Application JavaScript -->
+    <script src="/main.js?v=20250104" defer></script>
+
+    <!-- Service Worker Registration -->
     <script>
+        // Unregister any existing service workers to prevent caching issues
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for (let registration of registrations) {
@@ -199,113 +249,16 @@
             });
         }
 
-        // Force reload CSS if not loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const cssLink = document.querySelector('link[href*="styles.css"]');
-            if (cssLink) {
-                cssLink.addEventListener('error', function() {
-                    console.warn('External CSS failed to load, using inline styles');
+        // Check if external CSS loaded successfully
+        window.addEventListener('load', function() {
+            const link = document.querySelector('link[href*="styles.css"]');
+            if (link) {
+                link.addEventListener('error', function() {
+                    console.warn('External CSS failed to load, using inline styles only');
                 });
             }
         });
     </script>
-</head>
-
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <h1 class="header-title">GPS Tracker</h1>
-            <div class="header-controls">
-                <div class="ws-status" id="wsStatus">
-                    <div class="status-dot" id="statusDot"></div>
-                    <span class="status-text" id="statusText">Connecting...</span>
-                </div>
-                <button id="testConnection" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">Test Connection</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main">
-        <!-- Map Container -->
-        <div class="map-container">
-            <div id="map" class="map"></div>
-
-            <!-- Map Controls -->
-            <div class="map-controls">
-                <button class="control-btn" id="centerAllBtn" title="Center All Devices">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                </button>
-
-                <button class="control-btn" id="trailsBtn" title="Toggle Trails">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                </button>
-
-                <button class="control-btn" id="clustersBtn" title="Toggle Clusters">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                </button>
-
-                <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <!-- System Stats -->
-            <div class="card">
-                <h3 class="card-title">System Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Devices</span>
-                        <span class="stat-value" id="totalDevices">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Online Devices</span>
-                        <span class="stat-value" id="onlineDevices">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Total Positions</span>
-                        <span class="stat-value" id="totalPositions">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">WS Clients</span>
-                        <span class="stat-value" id="wsClients">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Uptime</span>
-                        <span class="stat-value" id="uptime">0s</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Devices List -->
-            <div class="card">
-                <h3 class="card-title">Devices</h3>
-                <div class="search-container">
-                    <input type="text" id="deviceSearch" placeholder="Search devices..." class="search-input">
-                </div>
-                <div class="devices-list" id="devicesList">
-                    <div class="no-devices">No devices found</div>
-                </div>
-            </div>
-        </aside>
-    </main>
-
-    <!-- Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" integrity="sha256-4vJ8dL2vZz3MjPMKfQ3TGoeQldmT1z0P1nXwrtbQyA=" crossorigin=""></script>
-    <script defer src="/main.js?v=20251004c"></script>
 </body>
 
 </html>

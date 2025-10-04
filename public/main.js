@@ -37,6 +37,11 @@ let isClustersEnabled = false;
 let isFullscreen = false;
 let reconnectDelay = CONFIG.RECONNECT_DELAY_MS;
 
+// Responsive behavior variables
+let isMobile = window.innerWidth <= 768;
+let isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+let sidebarOpen = false;
+
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
@@ -61,6 +66,20 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeEventListeners();
         console.log('Event listeners initialized');
 
+        console.log('Starting responsive behavior initialization...');
+        // Add immediate mobile toggle debugging
+        setTimeout(() => {
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            console.log('Mobile toggle element found:', mobileToggle);
+            if (mobileToggle) {
+                console.log('Mobile toggle display style:', mobileToggle.style.display);
+                console.log('Mobile toggle computed style:', window.getComputedStyle(mobileToggle).display);
+            }
+        }, 500);
+
+        initializeResponsive();
+        console.log('Responsive behavior initialized');
+
         // Add test connection button listener
         const testBtn = document.getElementById('testConnection');
         if (testBtn) {
@@ -84,6 +103,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 1000);
             });
         }
+
+        // Mobile toggle will be handled by initializeResponsive()
+
+        // Add a global test function for debugging
+        window.testMobileToggle = function() {
+            console.log('Testing mobile toggle...');
+            const sidebar = document.getElementById('sidebar');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            console.log('Sidebar element:', sidebar);
+            console.log('Mobile toggle element:', mobileToggle);
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                console.log('Sidebar classes after toggle:', sidebar.className);
+            }
+        };
 
         console.log('Starting stats initialization...');
         initializeStats();
@@ -913,3 +947,234 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
 });
+
+// ============================================================================
+// RESPONSIVE BEHAVIOR
+// ============================================================================
+
+function initializeResponsive() {
+    console.log('Initializing responsive behavior...');
+
+    // Set up mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+
+    console.log('Mobile menu toggle element:', mobileMenuToggle);
+    console.log('Sidebar element:', sidebar);
+
+    if (mobileMenuToggle && sidebar) {
+        console.log('Adding click event listener to mobile menu toggle');
+        mobileMenuToggle.addEventListener('click', (e) => {
+            console.log('Mobile menu toggle clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSidebar();
+        });
+
+        // Also add touch events for mobile devices
+        mobileMenuToggle.addEventListener('touchstart', (e) => {
+            console.log('Mobile menu toggle touched!');
+            e.preventDefault();
+            toggleSidebar();
+        });
+    } else {
+        console.error('Mobile menu toggle or sidebar not found!');
+    }
+
+    // Set up window resize handler
+    window.addEventListener('resize', handleResize);
+
+    // Set up touch gestures for mobile
+    if (isMobile) {
+        setupTouchGestures();
+    }
+
+    // Update initial responsive state
+    updateResponsiveState();
+}
+
+function handleResize() {
+    const newIsMobile = window.innerWidth <= 768;
+    const newIsTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+
+    if (newIsMobile !== isMobile || newIsTablet !== isTablet) {
+        isMobile = newIsMobile;
+        isTablet = newIsTablet;
+        updateResponsiveState();
+
+        // Invalidate map size after resize
+        if (map) {
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        }
+    }
+}
+
+function updateResponsiveState() {
+    const container = document.getElementById('app');
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+    console.log('updateResponsiveState called - isMobile:', isMobile, 'isTablet:', isTablet);
+
+    if (!container || !sidebar) {
+        console.error('Container or sidebar not found!');
+        return;
+    }
+
+    if (isMobile) {
+        console.log('Setting mobile responsive state');
+        // Mobile: Hide sidebar by default, show as overlay
+        container.classList.remove('sidebar-expanded');
+        sidebar.classList.remove('open');
+        sidebarOpen = false;
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.style.display = 'flex';
+            console.log('Mobile menu toggle set to display: flex');
+        }
+
+        // Adjust map controls for mobile
+        adjustMapControlsForMobile();
+
+    } else if (isTablet) {
+        console.log('Setting tablet responsive state');
+        // Tablet: Collapsed sidebar by default
+        container.classList.remove('sidebar-expanded');
+        sidebar.classList.remove('expanded');
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.style.display = 'none';
+            console.log('Mobile menu toggle hidden on tablet');
+        }
+
+        // Adjust map controls for tablet
+        adjustMapControlsForTablet();
+
+    } else {
+        console.log('Setting desktop responsive state');
+        // Desktop: Full sidebar
+        container.classList.add('sidebar-expanded');
+        sidebar.classList.add('expanded');
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.style.display = 'none';
+            console.log('Mobile menu toggle hidden on desktop');
+        }
+
+        // Reset map controls for desktop
+        adjustMapControlsForDesktop();
+    }
+}
+
+function toggleSidebar() {
+    console.log('toggleSidebar called');
+    const sidebar = document.getElementById('sidebar');
+
+    if (!sidebar) {
+        console.error('Sidebar not found!');
+        return;
+    }
+
+    console.log('Current device type - isMobile:', isMobile, 'isTablet:', isTablet);
+    console.log('Current sidebar state - sidebarOpen:', sidebarOpen);
+
+    if (isMobile) {
+        // Mobile: Toggle overlay
+        sidebarOpen = !sidebarOpen;
+        console.log('Mobile: Toggling sidebar to:', sidebarOpen);
+        sidebar.classList.toggle('open', sidebarOpen);
+
+        // Prevent body scroll when sidebar is open
+        document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+
+    } else if (isTablet) {
+        // Tablet: Toggle collapsed/expanded
+        console.log('Tablet: Toggling sidebar expanded state');
+        const container = document.getElementById('app');
+        sidebar.classList.toggle('expanded');
+        container.classList.toggle('sidebar-expanded');
+    } else {
+        console.log('Desktop: No toggle action needed');
+    }
+}
+
+function setupTouchGestures() {
+    const sidebar = document.getElementById('sidebar');
+
+    if (!sidebar) return;
+
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    // Touch start
+    sidebar.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+    });
+
+    // Touch move
+    sidebar.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        currentX = e.touches[0].clientX;
+        const diffX = currentX - startX;
+
+        // Swipe right to close sidebar
+        if (diffX > 50 && sidebarOpen) {
+            toggleSidebar();
+            isDragging = false;
+        }
+    });
+
+    // Touch end
+    sidebar.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+}
+
+function adjustMapControlsForMobile() {
+    const controls = document.querySelector('.map-controls');
+    if (!controls) return;
+
+    // Mobile: Horizontal layout with smaller buttons
+    controls.style.flexDirection = 'row';
+    controls.style.flexWrap = 'wrap';
+    controls.style.justifyContent = 'center';
+    controls.style.bottom = '10px';
+    controls.style.top = 'auto';
+    controls.style.right = '10px';
+    controls.style.left = '10px';
+}
+
+function adjustMapControlsForTablet() {
+    const controls = document.querySelector('.map-controls');
+    if (!controls) return;
+
+    // Tablet: Vertical layout on right side
+    controls.style.flexDirection = 'column';
+    controls.style.flexWrap = 'nowrap';
+    controls.style.justifyContent = 'flex-start';
+    controls.style.top = '20px';
+    controls.style.right = '20px';
+    controls.style.bottom = 'auto';
+    controls.style.left = 'auto';
+}
+
+function adjustMapControlsForDesktop() {
+    const controls = document.querySelector('.map-controls');
+    if (!controls) return;
+
+    // Desktop: Default vertical layout
+    controls.style.flexDirection = 'column';
+    controls.style.flexWrap = 'nowrap';
+    controls.style.justifyContent = 'flex-start';
+    controls.style.top = '20px';
+    controls.style.right = '20px';
+    controls.style.bottom = 'auto';
+    controls.style.left = 'auto';
+}
+
+// Responsive initialization is already handled in the main DOMContentLoaded event
